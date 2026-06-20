@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- ===== BRANDING: PAGE TITLE ===== -->
+<title>Masew Media — Rate Your Experience</title>
+
+<!-- ===== BRANDING: INLINE SVG FAVICON (gold star, no external file needed) ===== -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f0f0f'/%3E%3Cpath d='M50 18l9.5 19.3 21.3 3.1-15.4 15 3.6 21.2L50 76.9 30.9 86.6l3.6-21.2-15.4-15 21.3-3.1z' fill='%23FFD700'/%3E%3C/svg%3E" />
+
+<!-- ===== PREMIUM TYPOGRAPHY (Google Fonts) ===== -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- ===== QR CODE LIBRARY (free, client-side, no paid service) ===== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+  /* ============================================================
+     DESIGN TOKENS — dark + gold agency theme
+     ============================================================ */
+  :root {
+    --bg:        #0f0f0f;   /* base dark background        */
+    --bg-2:      #161412;   /* warm near-black for layering */
+    --gold:      #FFD700;   /* primary gold / stars         */
+    --gold-soft: #f3c969;   /* softer gold for text         */
+    --gold-deep: #b8860b;   /* deep gold for gradients      */
+    --ink:       #f5f3ee;   /* primary text                 */
+    --muted:     #9a948b;   /* secondary text               */
+    --line:      rgba(255,215,0,0.14);
+    --glass:     rgba(255,255,255,0.04);
+    --glass-brd: rgba(255,255,255,0.10);
+    --radius:    22px;
+    --ease:      cubic-bezier(.22,.61,.36,1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Sora', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 18px;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ----- Ambient gold gradient atmosphere ----- */
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    z-index: 0;
+    pointer-events: none;
+    opacity: .55;
+  }
+  body::before {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(255,215,0,.20), transparent 70%);
+    top: -160px; left: -120px;
+  }
+  body::after {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, rgba(184,134,11,.16), transparent 70%);
+    bottom: -200px; right: -140px;
+  }
+
+  /* ============================================================
+     CARD — glassmorphism
+     ============================================================ */
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 480px;
+    background: linear-gradient(160deg, var(--glass), rgba(255,255,255,0.015));
+    border: 1px solid var(--glass-brd);
+    border-radius: var(--radius);
+    padding: 42px 32px 36px;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,.9),
+                inset 0 1px 0 rgba(255,255,255,.06);
+    text-align: center;
+    animation: cardIn .9s var(--ease) both;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(24px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ----- Brand eyebrow ----- */
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 22px;
+  }
+  .brand .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 10px var(--gold);
+  }
+
+  /* ----- Headline (display serif) ----- */
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(26px, 6.5vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -.01em;
+    margin-bottom: 10px;
+  }
+  h1 .accent {
+    font-style: italic;
+    background: linear-gradient(100deg, var(--gold), var(--gold-soft) 60%, var(--gold-deep));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 14.5px;
+    line-height: 1.55;
+    max-width: 340px;
+    margin: 0 auto 30px;
+  }
+
+  /* ============================================================
+     STAR RATING — the signature interactive element
+     ============================================================ */
+  .stars {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .star {
+    --fill: 0;                      /* 0 = empty, 1 = gold */
+    font-size: clamp(40px, 11vw, 52px);
+    line-height: 1;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: rgba(255,255,255,.16);   /* empty state */
+    transition: transform .25s var(--ease), color .25s var(--ease), filter .25s var(--ease);
+    transform-origin: center bottom;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .star.lit {
+    color: var(--gold);
+    filter: drop-shadow(0 0 14px rgba(255,215,0,.55));
+  }
+  .star.hovered {
+    transform: translateY(-6px) scale(1.18) rotate(-4deg);
+  }
+  /* bounce when a rating is locked in */
+  .star.pop { animation: pop .45s var(--ease); }
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.35) rotate(6deg); }
+    100% { transform: scale(1); }
+  }
+  .rating-hint {
+    min-height: 20px;
+    font-size: 13px;
+    color: var(--gold-soft);
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+    opacity: 0;
+    transition: opacity .3s var(--ease);
+  }
+  .rating-hint.show { opacity: 1; }
+
+  /* ============================================================
+     FEEDBACK FORM (shown for 1–3 stars) — slides in
+     ============================================================ */
+  .panel {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: max-height .6s var(--ease), opacity .5s var(--ease), transform .5s var(--ease), margin .5s var(--ease);
+  }
+  .panel.open {
+    max-height: 620px;
+    opacity: 1;
+    transform: translateY(0);
+    margin-top: 24px;
+  }
+
+  .field { text-align: left; margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    letter-spacing: .04em;
+    color: var(--muted);
+    margin-bottom: 7px;
+  }
+  .field input,
+  .field textarea {
+    width: 100%;
+    background: rgba(0,0,0,.35);
+    border: 1px solid var(--glass-brd);
+    border-radius: 13px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 15px;
+    padding: 13px 15px;
+    transition: border-color .25s var(--ease), box-shadow .25s var(--ease), background .25s var(--ease);
+    resize: vertical;
+  }
+  .field textarea { min-height: 110px; }
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: rgba(0,0,0,.5);
+    box-shadow: 0 0 0 4px rgba(255,215,0,.12);
+  }
+  .field input::placeholder,
+  .field textarea::placeholder { color: rgba(255,255,255,.22); }
+
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+  .btn {
+    position: relative;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 15.5px;
+    letter-spacing: .02em;
+    padding: 15px 20px;
+    border-radius: 14px;
+    color: #1a1304;
+    background: linear-gradient(100deg, var(--gold), var(--gold-soft));
+    overflow: hidden;
+    transition: transform .2s var(--ease), box-shadow .3s var(--ease);
+    box-shadow: 0 12px 30px -12px rgba(255,215,0,.6);
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -12px rgba(255,215,0,.75); }
+  .btn:active { transform: translateY(0); }
+  /* sheen sweep on hover */
+  .btn::after {
+    content: "";
+    position: absolute; top: 0; left: -130%;
+    width: 60%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent);
+    transform: skewX(-20deg);
+    transition: left .6s var(--ease);
+  }
+  .btn:hover::after { left: 140%; }
+
+  /* ============================================================
+     THANK YOU STATE
+     ============================================================ */
+  .thanks {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    animation: cardIn .6s var(--ease) both;
+  }
+  .thanks.show { display: flex; }
+  .check {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: rgba(255,215,0,.1);
+    border: 1px solid var(--line);
+  }
+  .check svg { width: 38px; height: 38px; }
+  .check svg path {
+    stroke: var(--gold);
+    stroke-width: 3.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: draw .7s .15s var(--ease) forwards;
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .thanks h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 24px; }
+  .thanks p { color: var(--muted); font-size: 14.5px; max-width: 300px; }
+
+  /* ============================================================
+     REDIRECT LOADER (for 4–5 stars)
+     ============================================================ */
+  .loader-overlay {
+    position: fixed; inset: 0;
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    background: rgba(15,15,15,.92);
+    backdrop-filter: blur(8px);
+    animation: cardIn .35s var(--ease) both;
+  }
+  .loader-overlay.show { display: flex; }
+  .ring {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,215,0,.18);
+    border-top-color: var(--gold);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-overlay p { color: var(--gold-soft); letter-spacing: .14em; font-size: 13px; text-transform: uppercase; }
+
+  /* ============================================================
+     OWNER TOOLS — QR generator (discreet trigger + modal)
+     ============================================================ */
+  .owner-trigger {
+    position: fixed;
+    top: 18px; right: 18px;
+    z-index: 5;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--glass);
+    border: 1px solid var(--glass-brd);
+    color: var(--gold-soft);
+    font-family: inherit; font-size: 12px; letter-spacing: .08em;
+    padding: 9px 14px; border-radius: 999px;
+    cursor: pointer; backdrop-filter: blur(10px);
+    transition: border-color .25s var(--ease), color .25s var(--ease), transform .2s var(--ease);
+  }
+  .owner-trigger:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-1px); }
+
+  .modal {
+    position: fixed; inset: 0;
+    z-index: 60;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,.7);
+    backdrop-filter: blur(6px);
+  }
+  .modal.show { display: flex; animation: cardIn .4s var(--ease) both; }
+  .modal-card {
+    width: 100%; max-width: 420px;
+    background: var(--bg-2);
+    border: 1px solid var(--glass-brd);
+    border-radius: var(--radius);
+    padding: 28px 26px;
+    text-align: center;
+    box-shadow: 0 30px 80px -30px #000;
+  }
+  .modal-card h3 { font-family: 'Fraunces', serif; font-size: 21px; margin-bottom: 4px; }
+  .modal-card .hint { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  #qrCanvas {
+    display: inline-block;
+    background: #fff;
+    padding: 14px;
+    border-radius: 16px;
+    margin: 6px auto 18px;
+    min-height: 40px;
+    border: 1px solid var(--line);
+  }
+  #qrCanvas img, #qrCanvas canvas { display: block; }
+  .row { display: flex; gap: 10px; }
+  .row .btn { font-size: 14px; padding: 13px; }
+  .btn.ghost {
+    background: transparent;
+    color: var(--gold-soft);
+    border: 1px solid var(--glass-brd);
+    box-shadow: none;
+  }
+  .btn.ghost:hover { border-color: var(--gold); color: var(--gold); box-shadow: none; }
+  .fallback {
+    margin-top: 16px; font-size: 12px; color: var(--muted); line-height: 1.6;
+  }
+  .fallback a { color: var(--gold-soft); }
+  .close-x {
+    position: absolute; top: 16px; right: 18px;
+    background: none; border: none; color: var(--muted);
+    font-size: 22px; cursor: pointer; line-height: 1;
+  }
+
+  .footer-note {
+    position: relative; z-index: 1;
+    margin-top: 22px; font-size: 11.5px; color: rgba(255,255,255,.28);
+    letter-spacing: .08em;
+  }
+
+  /* ----- Accessibility: respect reduced motion ----- */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===== HIDDEN FORM: lets Netlify detect & register the form at deploy time.
+       Required for Netlify Forms. Harmless on other hosts. ===== -->
+  <form name="masew-feedback" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="masew-feedback" />
+    <input type="text" name="name" />
+    <input type="text" name="rating" />
+    <textarea name="message"></textarea>
+    <input name="bot-field" />
+  </form>
+
+  <!-- ===== OWNER TOOL: open QR generator ===== -->
+  <button class="owner-trigger" id="openQr" aria-label="Open QR code generator">◳ QR Setup</button>
+
+  <!-- ============================================================
+       MAIN REVIEW FUNNEL CARD
+       ============================================================ -->
+  <main class="card" id="mainCard">
+
+    <!-- Customer-facing view -->
+    <div id="funnelView">
+      <span class="brand"><span class="dot"></span> Masew Media</span>
+
+      <h1>Rate Your Experience<br>with <span class="accent">Masew Media</span></h1>
+      <p class="subtitle">Your feedback shapes everything we do. Tap a star to let us know how we did.</p>
+
+      <!-- 5 interactive animated stars -->
+      <div class="stars" id="stars" role="radiogroup" aria-label="Star rating">
+        <button class="star" data-value="1" role="radio" aria-label="1 star">★</button>
+        <button class="star" data-value="2" role="radio" aria-label="2 stars">★</button>
+        <button class="star" data-value="3" role="radio" aria-label="3 stars">★</button>
+        <button class="star" data-value="4" role="radio" aria-label="4 stars">★</button>
+        <button class="star" data-value="5" role="radio" aria-label="5 stars">★</button>
+      </div>
+      <div class="rating-hint" id="ratingHint"></div>
+
+      <!-- Feedback form (revealed only for 1–3 stars) -->
+      <div class="panel" id="feedbackPanel">
+        <div class="field">
+          <label for="custName">Your name (optional)</label>
+          <input type="text" id="custName" placeholder="e.g. Jordan Smith" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="custMsg">What could we have done better?</label>
+          <textarea id="custMsg" placeholder="Tell us what happened — we read every message."></textarea>
+        </div>
+        <button class="btn" id="sendFeedback">Send feedback</button>
+      </div>
+    </div>
+
+    <!-- Thank-you state (after feedback submit) -->
+    <div class="thanks" id="thanks">
+      <div class="check">
+        <svg viewBox="0 0 40 40"><path d="M9 21l7 7 15-17" /></svg>
+      </div>
+      <h2>Thank you</h2>
+      <p>Your message is on its way to our team. We genuinely appreciate you taking the time.</p>
+    </div>
+
+    <p class="footer-note">POWERED BY MASEW MEDIA</p>
+  </main>
+
+  <!-- ===== REDIRECT LOADER (4–5 stars) ===== -->
+  <div class="loader-overlay" id="loader">
+    <div class="ring"></div>
+    <p>Taking you to Google…</p>
+  </div>
+
+  <!-- ============================================================
+       QR GENERATOR MODAL (owner-only)
+       ============================================================ -->
+  <div class="modal" id="qrModal">
+    <div class="modal-card" style="position:relative;">
+      <button class="close-x" id="closeQr" aria-label="Close">×</button>
+      <h3>Generate your QR code</h3>
+      <p class="hint">Paste your live landing-page URL, then print the QR on cards, stands, or receipts.</p>
+
+      <div class="field" style="text-align:left;">
+        <label for="qrUrl">Landing page URL</label>
+        <input type="url" id="qrUrl" placeholder="https://your-site.netlify.app" />
+      </div>
+
+      <button class="btn" id="genQr" style="margin-bottom:18px;">Create QR code</button>
+
+      <div id="qrCanvas"></div>
+
+      <div class="row">
+        <button class="btn ghost" id="downloadQr">Download PNG</button>
+        <button class="btn ghost" id="copyUrl">Copy URL</button>
+      </div>
+
+      <p class="fallback">
+        No code needed? Free fallback tools:
+        <a href="https://www.qr-code-generator.com" target="_blank" rel="noopener">qr-code-generator.com</a>,
+        <a href="https://goqr.me" target="_blank" rel="noopener">goqr.me</a>, or
+        <a href="https://www.qrcode-monkey.com" target="_blank" rel="noopener">qrcode-monkey.com</a>.
+      </p>
+    </div>
+  </div>
+
+<script>
+  /* ============================================================
+     CONFIG — change these two values only
+     ============================================================ */
+  const GOOGLE_REVIEW_URL = "https://share.google/5fU8Wxcx9bx2UdJ7L";
+  const FEEDBACK_EMAIL     = "masewops@gmail.com";
+
+  /* ---- HOW LOW-STAR FEEDBACK IS DELIVERED ----------------------
+     Pick ONE:
+       "netlify"  → auto-collected by Netlify Forms (zero signup if
+                    you host on Netlify; view entries in your dashboard
+                    + optional email notifications). RECOMMENDED.
+       "formspree"→ auto-collected by Formspree (works on ANY host).
+                    Create a free form at formspree.io, then paste its
+                    ID below (the part after /f/ in your endpoint).
+       "mailto"   → opens the customer's own email app (original mode).
+     If an auto submission fails for any reason, the page silently
+     falls back to mailto so feedback is never lost.            */
+  const FEEDBACK_METHOD = "netlify";          // "netlify" | "formspree" | "mailto"
+  const FORMSPREE_ID    = "your_form_id";     // only used when method = "formspree"
+
+  /* ============================================================
+     STAR RATING LOGIC
+     ============================================================ */
+  const starEls   = Array.from(document.querySelectorAll(".star"));
+  const hintEl     = document.getElementById("ratingHint");
+  const panel      = document.getElementById("feedbackPanel");
+  const funnelView = document.getElementById("funnelView");
+  const thanks     = document.getElementById("thanks");
+  const loader     = document.getElementById("loader");
+
+  const HINTS = {
+    1: "We're sorry — tell us what went wrong.",
+    2: "We'd love to make this right.",
+    3: "Thanks — help us reach 5 stars.",
+    4: "Awesome! Sending you to Google…",
+    5: "You're the best! Sending you to Google…"
+  };
+
+  let selected = 0;
+
+  // Paint stars up to a given value
+  function paint(upTo, hovering) {
+    starEls.forEach((s, i) => {
+      const lit = i < upTo;
+      s.classList.toggle("lit", lit);
+      s.classList.toggle("hovered", hovering && lit);
+    });
+  }
+
+  // Hover preview
+  starEls.forEach((star, i) => {
+    star.addEventListener("mouseenter", () => paint(i + 1, true));
+    star.addEventListener("mouseleave", () => paint(selected, false));
+    star.addEventListener("click", () => choose(i + 1, star));
+  });
+
+  // Lock in a rating
+  function choose(value, el) {
+    selected = value;
+    paint(value, false);
+
+    // bounce the chosen star
+    el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+
+    // show contextual hint
+    hintEl.textContent = HINTS[value];
+    hintEl.classList.add("show");
+
+    if (value >= 4) {
+      // HAPPY PATH → redirect to Google review
+      panel.classList.remove("open");
+      setTimeout(redirectToGoogle, 650);
+    } else {
+      // LOW SCORE → reveal private feedback form
+      panel.classList.add("open");
+      setTimeout(() => document.getElementById("custMsg").focus(), 400);
+    }
+  }
+
+  /* ============================================================
+     4–5 STARS → loading animation, then redirect
+     ============================================================ */
+  function redirectToGoogle() {
+    loader.classList.add("show");
+    setTimeout(() => { window.location.href = GOOGLE_REVIEW_URL; }, 1400);
+  }
+
+  /* ============================================================
+     1–3 STARS → submit feedback automatically (Netlify / Formspree),
+     with a graceful mailto fallback if the request fails.
+     ============================================================ */
+  const sendBtn = document.getElementById("sendFeedback");
+
+  function showThanks() {
+    funnelView.style.display = "none";
+    thanks.classList.add("show");
+  }
+
+  // Last-resort fallback: open the customer's mail client
+  function fallbackMailto(p) {
+    const subject = encodeURIComponent("Customer Feedback");
+    const body = encodeURIComponent(
+      "Rating: " + p.rating + "\nName: " + p.name + "\n\nFeedback:\n" + p.message
+    );
+    window.location.href = "mailto:" + FEEDBACK_EMAIL + "?subject=" + subject + "&body=" + body;
+  }
+
+  sendBtn.addEventListener("click", async () => {
+    const name = document.getElementById("custName").value.trim();
+    const msg  = document.getElementById("custMsg").value.trim();
+
+    if (!msg) {
+      const ta = document.getElementById("custMsg");
+      ta.focus();
+      ta.style.borderColor = "#ff6b6b";
+      ta.placeholder = "Please add a quick note so we can help.";
+      return;
+    }
+
+    const payload = {
+      name:    name || "Anonymous",
+      rating:  selected + " star" + (selected === 1 ? "" : "s"),
+      message: msg
+    };
+
+    // Button loading state
+    const label = sendBtn.textContent;
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Sending…";
+
+    try {
+      if (FEEDBACK_METHOD === "formspree") {
+        // Works on any host
+        const res = await fetch("https://formspree.io/f/" + FORMSPREE_ID, {
+          method: "POST",
+          headers: { "Accept": "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error("formspree failed");
+
+      } else if (FEEDBACK_METHOD === "netlify") {
+        // Posts to the Netlify Forms endpoint (the site root)
+        const body = new URLSearchParams({
+          "form-name": "masew-feedback",
+          name:    payload.name,
+          rating:  payload.rating,
+          message: payload.message
+        }).toString();
+        const res = await fetch("/", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+        if (!res.ok) throw new Error("netlify failed");
+
+      } else {
+        // method = "mailto": go straight to mail client
+        throw new Error("use mailto");
+      }
+
+      showThanks();
+
+    } catch (err) {
+      // Network error, misconfig, or mailto mode → never lose feedback
+      fallbackMailto(payload);
+      showThanks();
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = label;
+    }
+  });
+
+  /* ============================================================
+     QR CODE GENERATOR (client-side, free)
+     ============================================================ */
+  const qrModal  = document.getElementById("qrModal");
+  const qrTarget = document.getElementById("qrCanvas");
+  let qrInstance = null;
+
+  document.getElementById("openQr").addEventListener("click", () => {
+    qrModal.classList.add("show");
+    // Prefill with the current page URL as a convenience
+    const urlInput = document.getElementById("qrUrl");
+    if (!urlInput.value) urlInput.value = window.location.href;
+  });
+  document.getElementById("closeQr").addEventListener("click", () => qrModal.classList.remove("show"));
+  qrModal.addEventListener("click", (e) => { if (e.target === qrModal) qrModal.classList.remove("show"); });
+
+  document.getElementById("genQr").addEventListener("click", () => {
+    const url = document.getElementById("qrUrl").value.trim();
+    if (!url) { document.getElementById("qrUrl").focus(); return; }
+
+    qrTarget.innerHTML = ""; // clear previous
+    qrInstance = new QRCode(qrTarget, {
+      text: url,
+      width: 220,
+      height: 220,
+      colorDark:  "#0f0f0f",   // dark modules for reliable scanning
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  });
+
+  // Download the generated QR as a PNG
+  document.getElementById("downloadQr").addEventListener("click", () => {
+    const img = qrTarget.querySelector("img") || qrTarget.querySelector("canvas");
+    if (!img) { alert("Generate a QR code first."); return; }
+    const src = img.tagName === "IMG" ? img.src : img.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = src;
+    a.download = "masew-media-review-qr.png";
+    a.click();
+  });
+
+  // Copy the URL to clipboard
+  document.getElementById("copyUrl").addEventListener("click", async () => {
+    const url = document.getElementById("qrUrl").value.trim();
+    if (!url) return;
+    try { await navigator.clipboard.writeText(url); 
+      const b = document.getElementById("copyUrl"); const t = b.textContent;
+      b.textContent = "Copied ✓"; setTimeout(() => b.textContent = t, 1500);
+    } catch (_) {}
+  });
+
+  /* ============================================================
+     KEYBOARD SUPPORT for stars (accessibility)
+     ============================================================ */
+  starEls.forEach((star, i) => {
+    star.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(i + 1, star); }
+    });
+  });
+</script>
+</body>
+</html>
